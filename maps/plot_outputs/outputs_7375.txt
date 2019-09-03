@@ -1,0 +1,5 @@
+chi2=nan
+e0=nan
+lt=nan
+e0u=nan
+ltu=nan
