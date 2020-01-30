@@ -239,7 +239,7 @@ def amap_copy(amap : ASectorMap) -> ASectorMap:
                       lt    = amap.lt.copy(),
                       e0u   = amap.e0u.copy(),
                       ltu   = amap.ltu.copy(),
-                      mapinfo   = None)
+                      mapinfo   = amap.mapinfo.copy())
 
 # n_min is minimum number of neighbors. You can use this
 # to say, for example, "don't fill a point that has only
@@ -298,36 +298,23 @@ def iterate_fill_neighborhoods(amap_old : ASectorMap , n_min : float = 4) -> ASe
 # in the lifetime map. Return false if
 # any nans remain.
 def amap_full(amap):
-    for i in range(len(amap.lt)):
-        for j in range(len(amap.lt[i])):
-            if np.isnan(amap.lt[i][j]):
-                return False
-    return True
+    return not np.isnan(amap.lt.values).any()
 
 # Start with iterate_fill_neighborhoods, then do the same
 # for n_min = 4, then 3, then 2, then 1. Repeat the process
 # over until the entire map is full.
-def fill_neighborhoods_descending(amap_old : ASectorMap) -> ASectorMap:
+def fill_neighborhoods_descending(amap_old : ASectorMap, max_cycles : float = 10, first_num_nbhs : float = 5) -> ASectorMap:
 
     num_cycles = 0
     amap_new = amap_copy(amap_old)
     
-    while not amap_full(amap_new) and num_cycles < 10:
+    while not amap_full(amap_new) and num_cycles < max_cycles:
         num_cycles += 1
         
-        for min in range(0, 6):
-            amap_new = fill_neighborhoods(amap_new, n_min = (5 - min))
+        for min_nbhs in range(0, first_num_nbhs+1):
+            amap_new = fill_neighborhoods(amap_new, n_min = (first_num_nbh-min_nbhs))
     
     return amap_new
-
-def amap_replace_nan_by_nbhd(amap : ASectorMap) -> ASectorMap:
-    return ASectorMap(chi2    = amap.chi2.fillna(val),
-                      e0      = amap.e0  .fillna(val),
-                      lt      = amap.lt  .fillna(val),
-                      e0u     = amap.e0u .fillna(val),
-                      ltu     = amap.ltu .fillna(val),
-                      mapinfo = amap.mapinfo)
-
 
 def relative_errors(am : ASectorMap) -> ASectorMap:
     return ASectorMap(chi2    = am.chi2,
